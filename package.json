@@ -1,0 +1,38 @@
+{
+  "name": "api_inova",
+  "version": "1.0.0",
+  "description": "Project for TCC at PUCRS",
+  "main": "index.js",
+  "repository": "https://github.com/WallysoPMoura/api_inova.git",
+  "author": "Wallyso Moura <wallyso@hotmail.com.br>",
+  "license": "MIT",
+  "scripts": {
+    "dev": "tsx watch --env-file .env src/index.ts",
+    "start": "node dist/index.js",
+    "build": "rm -rf dist && tsc && tsc-alias",
+    "prisma": "prisma"
+  },
+  "engines": {
+    "node": ">=20.x.x"
+  },
+  "dependencies": {
+    "@fastify/cors": "^10.0.1",
+    "@fastify/jwt": "^9.0.1",
+    "@prisma/client": "^5.20.0",
+    "@tsconfig/node20": "^20.1.4",
+    "bcrypt": "^5.1.1",
+    "fastify": "^5.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "lodash": "^4.17.21",
+    "prisma": "^5.20.0",
+    "resend": "3.0.0"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/lodash": "^4.17.10",
+    "@types/node": "^22.7.5",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.3"
+  }
+}
