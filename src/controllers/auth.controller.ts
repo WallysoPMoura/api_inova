@@ -9,7 +9,10 @@ import { BaseRequest } from "requests/base.request";
 import bcrypt from 'bcrypt';
 import jwt from "jsonwebtoken";
 import _ from "lodash";
-import { randomUUID } from "crypto";
+import { Resend } from "resend";
+import getMail from "emails";
+import { VerifyTokenRequest } from "requests/auth/verify-token.request";
+
 
 export default class AuthController {
 
@@ -49,7 +52,7 @@ export default class AuthController {
     }
 
     public async login(request: FastifyRequest<BaseRequest<LoginRequest>>, reply: FastifyReply) {
-        
+
         const { email, password } = request.body;
 
         const user = await prismaClient.user.findFirst({
@@ -96,16 +99,29 @@ export default class AuthController {
         })
 
         if (user) {
+            //generate random 4 numbers
+            const code = Math.floor(Math.random() * 100000);
+
             await prismaClient.passwordReset.create({
                 data: {
                     userId: user.id,
-                    token: randomUUID() as string,
+                    token: String(code),
                     expiresAt: new Date(new Date().getTime() + 60 * 60 * 1000), // uma hora de expiração
                 }
             });
 
-            //Maby send e-mail for user
+            const resend = new Resend(process.env.RESEND_API_KEY);
+            const template = getMail('forgot-password', { name: user?.name, code: code })
+    
+            await resend.emails.send({
+                from: "Inova-Se <inova-se@inoflame.tech>",
+                to: [email],
+                subject: "Recuperação de senha",
+                html: template,
+            });
         }
+
+       
 
         reply.send({
             success: true,
@@ -149,6 +165,33 @@ export default class AuthController {
         reply.send({
             success: true,
             data: 'Password changed successfully',
+        })
+
+    }
+
+    public async verifyToken(request: FastifyRequest<BaseRequest<VerifyTokenRequest>>, reply: FastifyReply) {
+
+        const { email, token } = request.body;
+
+        const user = await prismaClient.user.findFirst({            
+            where: {
+                email
+            }
+        });
+        
+        if (!user) {
+            return reply.status(400).send({ error: 'User not found' });
+        }
+
+        const passwordReset = await prismaClient.passwordReset.findFirst({
+            where: {
+                userId: user.id
+            }
+        });
+
+        reply.send({
+            success: true,
+            data: Boolean(passwordReset && passwordReset.token === token),
         })
 
     }
