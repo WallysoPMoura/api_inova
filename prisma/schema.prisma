@@ -21,6 +21,7 @@ model User {
   role     Role   @default(USER)
 
   passwordReset PasswordReset[]
+  idea Idea[]
 
   @@map("users")
 }
@@ -43,6 +44,8 @@ model TypeOfIdea {
   id   Int    @id @default(autoincrement())
   name String
 
+  idea Idea[]
+
   @@map("type_of_ideas")
 }
 
@@ -50,7 +53,43 @@ model Department {
   id   Int    @id @default(autoincrement())
   name String
 
+  idea Idea[]
+
   @@map("departments")
+}
+
+model Campaign {
+  id   Int    @id @default(autoincrement())
+  name String
+  slug String
+  description String @db.Text
+  startDate DateTime
+  endDate DateTime
+
+  idea Idea[]
+
+  @@map("campaigns")
+}
+
+model Idea {
+  id          Int    @id @default(autoincrement())
+  userId      Int
+  campaignId  Int
+  departmentId  Int
+  typeOfIdeaId  Int
+  idea        String @db.Text
+  implemented Boolean? @default(false)
+  createdAt   DateTime? @default(now())
+  updatedAt   DateTime? @default(now())
+  deletedAt   DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+  campaign Campaign @relation(fields: [campaignId], references: [id])
+
+  typeOfIdea TypeOfIdea @relation(fields: [typeOfIdeaId], references: [id])
+  department Department @relation(fields: [departmentId], references: [id])
+
+  @@map("ideas")
 }
 
 enum Role {
