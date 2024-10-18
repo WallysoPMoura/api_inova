@@ -131,7 +131,7 @@ export default class AuthController {
 
     public async changePassword(request: FastifyRequest<BaseRequest<ChangePasswordRequest>>, reply: FastifyReply) {
 
-        const { password, passwordConfirmation, token } = request.body;
+        const { password, password_confirmation, token } = request.body;
 
         const passwordReset = await prismaClient.passwordReset.findFirst({
             where: {
@@ -143,7 +143,7 @@ export default class AuthController {
             return reply.status(400).send({ error: 'Invalid token' });
         }
 
-        if (password !== passwordConfirmation) {
+        if (password != password_confirmation) {
             return reply.status(400).send({ error: 'Passwords do not match' });
         }
 
@@ -171,27 +171,21 @@ export default class AuthController {
 
     public async verifyToken(request: FastifyRequest<BaseRequest<VerifyTokenRequest>>, reply: FastifyReply) {
 
-        const { email, token } = request.body;
-
-        const user = await prismaClient.user.findFirst({            
-            where: {
-                email
-            }
-        });
-        
-        if (!user) {
-            return reply.status(400).send({ error: 'User not found' });
-        }
+        const { token } = request.body;
 
         const passwordReset = await prismaClient.passwordReset.findFirst({
             where: {
-                userId: user.id
+                token
             }
         });
 
+        if (!passwordReset || passwordReset.expiresAt < new Date() || passwordReset.token != token) {
+            return reply.status(400).send({ error: 'Invalid token' });
+        }
+
         reply.send({
             success: true,
-            data: Boolean(passwordReset && passwordReset.token === token),
+            data: Boolean(passwordReset && passwordReset.token == token),
         })
 
     }
