@@ -22,6 +22,13 @@ export type BasePaginateRequest = {
         page: number,
     }
 }
+export type BaseSearchRequest<T> = {
+    Params: {
+        search: string,
+        param: T
+    }
+}
+
 
 export const BasePaginateSchema: FastifySchema = {
     querystring: {

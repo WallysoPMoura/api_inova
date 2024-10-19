@@ -1,6 +1,7 @@
 import prismaClient from "@core/config/database.config";
 import { FastifyReply, FastifyRequest } from "fastify";
-import { BasePaginateRequest, BaseRequest, BaseShowRequest } from "requests/base.request";
+import { BasePaginateRequest, BaseRequest, BaseSearchRequest, BaseShowRequest } from "requests/base.request";
+import { SearchRequest } from "requests/idea/search.request";
 import { StoreRequest } from "requests/idea/store.request";
 
 export default class IdeaController {
@@ -15,9 +16,16 @@ export default class IdeaController {
             take: perPage
         });
 
+        const total = await prismaClient.idea.count();
+
         return reply.send({
             success: true,
-            data: ideas
+            data: {
+                data: ideas,
+                page: Number(page),
+                perPage,
+                total
+            }
         });
     }
 
@@ -200,6 +208,39 @@ export default class IdeaController {
         return reply.send({
             success: true,
             data: ranked
+        });
+    }
+
+    public async search(request: FastifyRequest<BaseSearchRequest<SearchRequest>>, reply: FastifyReply) {
+
+        const { search, param } = request.params;
+        
+        let ideas;
+
+        if (!param) {
+            ideas = await prismaClient.idea.findMany({
+                where: {
+                    idea: {
+                        contains: search
+                    },
+                }
+            });
+        } else {
+            const { campaignId } = param;
+
+            ideas = await prismaClient.idea.findMany({
+                where: {
+                    idea: {
+                        contains: search
+                    },
+                    campaignId: campaignId
+                }
+            });
+        }
+
+        return reply.send({
+            success: true,
+            data: ideas
         });
     }
 
