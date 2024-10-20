@@ -2,7 +2,7 @@ import AuthMiddleware from "@middleware/auth.middleware";
 import IdeaController from "controllers/idea.controller";
 import { FastifyInstance } from "fastify";
 import { BasePaginateRequest, BasePaginateSchema, BaseRequest, BaseSearchRequest, BaseShowRequest } from "requests/base.request";
-import { SearchRequest } from "requests/idea/search.request";
+
 import { StoreRequest, StoreSchema } from "requests/idea/store.request";
 
 const controller = new IdeaController();
@@ -14,7 +14,6 @@ export async function handleIdeaRoutes(instance: FastifyInstance): Promise<void>
     instance.get('/idea/more-submitted', { preValidation: [AuthMiddleware] }, controller.moreSubmitted);
     instance.get('/idea/more-implemented', { preValidation: [AuthMiddleware] }, controller.moreImplemented);
     instance.get<BaseShowRequest>('/idea/:id', { preValidation: [AuthMiddleware] }, controller.show);
-    instance.get<BaseSearchRequest<SearchRequest>>('/idea/search', { preValidation: [AuthMiddleware] }, controller.search);
     instance.post<BaseRequest<StoreRequest>>('/idea', { preValidation: [AuthMiddleware], schema: StoreSchema }, controller.store);
     
     

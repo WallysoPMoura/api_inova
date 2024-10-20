@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { handleAuthRoutes } from "./auth.route";
-import { handleDepartamentRoutes } from "./departament.route";
+import { handleDepartamentRoutes } from "./department.route";
 import { handleTypeOfIdeaRoutes } from "./typeofidea.route";
 import { handleCampaignRoutes } from "./campaign.route";
 import { handleIdeaRoutes } from "./idea.route";

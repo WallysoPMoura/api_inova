@@ -1,12 +1,12 @@
 import AuthMiddleware from "@middleware/auth.middleware";
-import DepartamentController from "controllers/departament.controller";
+import DepartmentController from "controllers/department.controller";
 import { FastifyInstance } from "fastify";
 import { BaseDeleteRequest } from "requests/base-delete.request";
 import { BaseRequest, BaseUpdateRequest } from "requests/base.request";
 import { StoreRequest, StoreSchema } from "requests/department/store.request";
 import { UpdateRequest, UpdateSchema } from "requests/department/update.request";
 
-const controller = new DepartamentController();
+const controller = new DepartmentController();
 
 export async function handleDepartamentRoutes(instance: FastifyInstance): Promise<void> {
     

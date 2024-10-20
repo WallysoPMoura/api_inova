@@ -4,6 +4,7 @@ export type StoreRequest = {
     campaignId: number
     departmentId: number
     typeOfIdeaId: number
+    title: string
     idea: string
 }
 
@@ -14,9 +15,10 @@ export const StoreSchema: FastifySchema = {
             campaignId: { type: 'number' },
             departmentId: { type: 'number' },
             typeOfIdeaId: { type: 'number' },
+            title: { type: 'string' },
             idea: { type: 'string' },
         },
-        required: ['campaignId', 'departmentId', 'typeOfIdeaId', 'idea'],
+        required: ['campaignId', 'departmentId', 'typeOfIdeaId', 'idea', 'title'],
         additionalProperties: false
     }
 }

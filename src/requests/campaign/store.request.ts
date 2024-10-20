@@ -5,7 +5,8 @@ export type StoreRequest = {
     slug: string,
     description: string,
     startdate: string,
-    enddate: string
+    enddate: string;
+    file: Buffer
 }
 
 export const StoreSchema: FastifySchema = {
@@ -16,9 +17,10 @@ export const StoreSchema: FastifySchema = {
             slug: { type: 'string' },
             description: { type: 'string' },
             startdate: { type: 'string' },
-            enddate: { type: 'string' }
+            enddate: { type: 'string' },
+            file: { format: 'binary' }
         },
-        required: ['name', 'slug', 'description', 'startdate', 'enddate'],
+        required: ['name', 'slug', 'description', 'startdate', 'enddate', 'file'],
         additionalProperties: false
     }
 }

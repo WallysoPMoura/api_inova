@@ -1,7 +1,12 @@
-import { FastifySchema } from "fastify"
+import { FastifyRequest, FastifySchema, RouteGenericInterface, RouteShorthandMethod } from "fastify"
+
+export interface FastifyFormDataRequest extends FastifyRequest, RouteGenericInterface {
+    formData: () => Promise<FormData>;
+}
 
 export type BaseRequest<T> = {
-    Body: T
+    Body: T,
+    
 }
 
 export type BaseUpdateRequest<T> = {
@@ -18,10 +23,13 @@ export type BaseShowRequest = {
 }
 
 export type BasePaginateRequest = {
-    Params: {
-        page: number,
+    Querystring: {
+        page?: number;
+        [key: string]: any;
     }
 }
+
+
 export type BaseSearchRequest<T> = {
     Params: {
         search: string,
@@ -35,8 +43,8 @@ export const BasePaginateSchema: FastifySchema = {
         type: 'object',
         properties: {
           page: { type: 'string' },
+          
         },
-        required: ['page'],
-        additionalProperties: false,
+        additionalProperties: true,
       }
 }

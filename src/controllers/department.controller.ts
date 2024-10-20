@@ -5,7 +5,7 @@ import { BaseRequest, BaseUpdateRequest } from "requests/base.request";
 import { StoreRequest } from "requests/department/store.request";
 import { UpdateRequest } from "requests/department/update.request";
 
-export default class DepartamentController {
+export default class DepartmentController {
     
     public async index(request: FastifyRequest, reply: FastifyReply) {
         const types = await prismaClient.department.findMany();

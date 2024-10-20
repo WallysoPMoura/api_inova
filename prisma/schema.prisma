@@ -65,6 +65,7 @@ model Campaign {
   description String @db.Text
   startDate DateTime
   endDate DateTime
+  thumbnail String
 
   idea Idea[]
 
@@ -77,6 +78,7 @@ model Idea {
   campaignId  Int
   departmentId  Int
   typeOfIdeaId  Int
+  title       String
   idea        String @db.Text
   implemented Boolean? @default(false)
   createdAt   DateTime? @default(now())

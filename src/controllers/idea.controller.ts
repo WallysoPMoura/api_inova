@@ -1,22 +1,54 @@
 import prismaClient from "@core/config/database.config";
+import uploadService from "@core/services/upload.service";
 import { FastifyReply, FastifyRequest } from "fastify";
-import { BasePaginateRequest, BaseRequest, BaseSearchRequest, BaseShowRequest } from "requests/base.request";
-import { SearchRequest } from "requests/idea/search.request";
+import _ from "lodash";
+import { BasePaginateRequest, BaseRequest, BaseShowRequest } from "requests/base.request";
 import { StoreRequest } from "requests/idea/store.request";
 
 export default class IdeaController {
 
     public async index(request: FastifyRequest<BasePaginateRequest>, reply: FastifyReply) {
 
-        const { page = 1 } = request.params;
+        const { page = 1, campaignId, ideia } = request.query;
+
         const perPage = 3;
 
-        const ideas = await prismaClient.idea.findMany({
+
+        let ideas = await prismaClient.idea.findMany({
             skip: (Number(page) - 1) * perPage,
-            take: perPage
+            take: perPage,
+            where: {
+                campaignId: Number(campaignId) || undefined,
+                idea: ideia || undefined,
+                userId: Number(request.user.id)
+            },
+            include: {
+                campaign: {
+                    select: {
+                        thumbnail: true,
+                        name: true
+                    }
+                },
+                typeOfIdea: {
+                    select: {
+                        name: true
+                    }
+                }
+            }
         });
 
-        const total = await prismaClient.idea.count();
+
+        ideas.map(async idea => {
+            idea.campaign.thumbnail = await uploadService.link('campaigns', idea.campaign.thumbnail!);
+            return idea
+        });
+
+        const total = await prismaClient.idea.count({
+            where: {
+                campaignId: Number(campaignId) || undefined,
+                idea: ideia || undefined
+            }
+        });
 
         return reply.send({
             success: true,
@@ -47,7 +79,7 @@ export default class IdeaController {
 
     public async store(request: FastifyRequest<BaseRequest<StoreRequest>>, reply: FastifyReply) {
 
-        const { campaignId, departmentId, typeOfIdeaId, idea } = request.body;
+        const { campaignId, departmentId, typeOfIdeaId, title, idea } = request.body;
 
         const campaign = await prismaClient.campaign.findFirst({
             where: {
@@ -103,6 +135,7 @@ export default class IdeaController {
                 campaignId: Number(campaignId),
                 departmentId: Number(departmentId),
                 typeOfIdeaId: Number(typeOfIdeaId),
+                title,
                 idea
             }
         });
@@ -208,39 +241,6 @@ export default class IdeaController {
         return reply.send({
             success: true,
             data: ranked
-        });
-    }
-
-    public async search(request: FastifyRequest<BaseSearchRequest<SearchRequest>>, reply: FastifyReply) {
-
-        const { search, param } = request.params;
-        
-        let ideas;
-
-        if (!param) {
-            ideas = await prismaClient.idea.findMany({
-                where: {
-                    idea: {
-                        contains: search
-                    },
-                }
-            });
-        } else {
-            const { campaignId } = param;
-
-            ideas = await prismaClient.idea.findMany({
-                where: {
-                    idea: {
-                        contains: search
-                    },
-                    campaignId: campaignId
-                }
-            });
-        }
-
-        return reply.send({
-            success: true,
-            data: ideas
         });
     }
 

@@ -1,7 +1,7 @@
 import { FastifyCorsOptions } from '@fastify/cors';
 
 const corsConfig: FastifyCorsOptions = {
-  origin: true,
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 };
 

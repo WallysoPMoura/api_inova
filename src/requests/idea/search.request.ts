@@ -1,3 +1,4 @@
 export type SearchRequest = {
-    campaignId?: number
+    campaignId?: number,
+    ideia?: string
 }
