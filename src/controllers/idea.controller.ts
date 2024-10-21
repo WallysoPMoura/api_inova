@@ -1,7 +1,9 @@
 import prismaClient from "@core/config/database.config";
 import uploadService from "@core/services/upload.service";
+import { TypeOfIdea } from "@prisma/client";
 import { FastifyReply, FastifyRequest } from "fastify";
 import _ from "lodash";
+import moment from "moment";
 import { BasePaginateRequest, BaseRequest, BaseShowRequest } from "requests/base.request";
 import { StoreRequest } from "requests/idea/store.request";
 
@@ -194,8 +196,6 @@ export default class IdeaController {
                     }
                 });
 
-                console.log({ name: userData?.name, count: user._sum.userId })
-
                 return { name: userData?.name, count: user._sum.userId }
             })
         );
@@ -232,8 +232,6 @@ export default class IdeaController {
                     }
                 });
 
-                console.log({ name: userData?.name, count: user._sum.userId })
-
                 return { name: userData?.name, count: user._sum.userId }
             })
         );
@@ -242,6 +240,107 @@ export default class IdeaController {
             success: true,
             data: ranked
         });
+    }
+
+    public async byUser(request: FastifyRequest, reply: FastifyReply) {
+
+        const ideas = await prismaClient.idea.findMany({
+            where: {
+                userId: Number(request.user.id)
+            },
+            include: {
+                campaign: {
+                    select: {
+                        name: true
+                    }
+                }
+            }
+        });
+
+        const types = await prismaClient.typeOfIdea.findMany();
+
+        const now = moment();
+        const startNow = now.startOf('month').toDate();
+        const endNow = now.endOf('month').toDate();
+
+        const last = moment().subtract(1, 'month');
+        const startLast = last.startOf('month').toDate();
+        const endLast = last.endOf('month').toDate();
+
+        const currentMonthCount = await prismaClient.idea.count({
+            where: {
+                userId: Number(request.user.id),
+                createdAt: {
+                    gte: startNow,
+                    lte: endNow,
+                },
+            },
+        });
+
+        const previousTypeMonthCount = await prismaClient.idea.count({
+            where: {
+                userId: Number(request.user.id),
+                createdAt: {
+                    gte: startLast,
+                    lte: endLast,
+                },
+            },
+        });
+
+        let percentageTotal: number;
+
+        if (previousTypeMonthCount === 0 && currentMonthCount === 0) {
+            percentageTotal = 0;
+        } else if (previousTypeMonthCount === 0 && currentMonthCount > 0) {
+            percentageTotal = 100;
+        } else {
+            percentageTotal = ((currentMonthCount - previousTypeMonthCount) / previousTypeMonthCount) * 100;
+        }
+
+        const result = await Promise.all(
+            types.map(async type => {
+
+                const currentTypeMonthCount = await prismaClient.idea.count({
+                    where: {
+                        userId: Number(request.user.id),
+                        typeOfIdeaId: type.id,
+                        createdAt: {
+                            gte: startNow,
+                            lte: endNow,
+                        },
+                    },
+                });
+
+                const previousTypeMonthCount = await prismaClient.idea.count({
+                    where: {
+                        userId: Number(request.user.id),
+                        typeOfIdeaId: type.id,
+                        createdAt: {
+                            gte: startLast,
+                            lte: endLast,
+                        },
+                    },
+                });
+
+                let percentage: number;
+
+                if (previousTypeMonthCount === 0 && currentTypeMonthCount === 0) {
+                    percentage = 0;
+                } else if (previousTypeMonthCount === 0 && currentTypeMonthCount > 0) {
+                    percentage = 100;
+                } else {
+                    percentage = ((currentTypeMonthCount - previousTypeMonthCount) / previousTypeMonthCount) * 100;
+                }
+
+                return { ...type, percentage, count: currentTypeMonthCount }
+            })
+        );
+
+        return reply.send({
+            success: true,
+            data: { total: ideas.length, percentageTotal, typeOfIdeas: result }
+        })
+
     }
 
 }

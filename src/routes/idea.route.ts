@@ -14,6 +14,7 @@ export async function handleIdeaRoutes(instance: FastifyInstance): Promise<void>
     instance.get('/idea/more-submitted', { preValidation: [AuthMiddleware] }, controller.moreSubmitted);
     instance.get('/idea/more-implemented', { preValidation: [AuthMiddleware] }, controller.moreImplemented);
     instance.get<BaseShowRequest>('/idea/:id', { preValidation: [AuthMiddleware] }, controller.show);
+    instance.get('/idea/byUser', { preValidation: [AuthMiddleware] }, controller.byUser);
     instance.post<BaseRequest<StoreRequest>>('/idea', { preValidation: [AuthMiddleware], schema: StoreSchema }, controller.store);
     
     

@@ -22,6 +22,7 @@ model User {
 
   passwordReset PasswordReset[]
   idea Idea[]
+  evaluation Evaluation[]
 
   @@map("users")
 }
@@ -90,8 +91,26 @@ model Idea {
 
   typeOfIdea TypeOfIdea @relation(fields: [typeOfIdeaId], references: [id])
   department Department @relation(fields: [departmentId], references: [id])
+  evaluations Evaluation[]
 
   @@map("ideas")
+}
+
+model Evaluation {
+
+  id Int @id @default(autoincrement())
+  ideaId Int
+
+  inovation Int
+  implementation Int
+  observation String
+
+  evaluatorId Int
+
+  Idea Idea @relation(fields: [ideaId], references: [id])
+  evaluator User @relation(fields: [evaluatorId], references: [id])
+
+  @@map("evaluations")
 }
 
 enum Role {
