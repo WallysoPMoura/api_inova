@@ -15,42 +15,93 @@ export default class IdeaController {
 
         const perPage = 3;
 
-
-        let ideas = await prismaClient.idea.findMany({
-            skip: (Number(page) - 1) * perPage,
-            take: perPage,
+        const user = await prismaClient.user.findFirst({
             where: {
-                campaignId: Number(campaignId) || undefined,
-                idea: ideia || undefined,
-                userId: Number(request.user.id)
-            },
-            include: {
-                campaign: {
-                    select: {
-                        thumbnail: true,
-                        name: true
-                    }
+                id: Number(request.user.id)
+            }
+        });
+
+        let ideas, total;
+
+        if (user?.role !== "ADMIN") {
+            ideas = await prismaClient.idea.findMany({
+                skip: (Number(page) - 1) * perPage,
+                take: perPage,
+                where: {
+                    campaignId: Number(campaignId) || undefined,
+                    idea: ideia || undefined,
+                    userId: Number(request.user.id)
                 },
-                typeOfIdea: {
-                    select: {
-                        name: true
+                include: {
+                    campaign: {
+                        select: {
+                            thumbnail: true,
+                            name: true
+                        }
+                    },
+                    typeOfIdea: {
+                        select: {
+                            name: true
+                        }
                     }
                 }
-            }
-        });
+            });
 
+            total = await prismaClient.idea.count({
+                where: {
+                    campaignId: Number(campaignId) || undefined,
+                    idea: ideia || undefined
+                }
+            });
+        } else {
+            ideas = await prismaClient.idea.findMany({
+                skip: (Number(page) - 1) * perPage,
+                take: perPage,
+                where: {
+                    campaignId: Number(campaignId) || undefined,
+                    idea: ideia || undefined,
+                    evaluations: {
+                        none: {
+                            evaluatorId: Number(request.user.id),
+                        },
+                    },
+                },
+                include: {
+                    campaign: {
+                        select: {
+                            thumbnail: true,
+                            name: true,
+                        },
+                    },
+                    typeOfIdea: {
+                        select: {
+                            name: true,
+                        },
+                    },
+                    evaluations: true,
+                },
+            });
 
-        ideas.map(async idea => {
-            idea.campaign.thumbnail = await uploadService.link('campaigns', idea.campaign.thumbnail!);
-            return idea
-        });
+            total = await prismaClient.idea.count({
+                where: {
+                    campaignId: Number(campaignId) || undefined,
+                    idea: ideia || undefined,
+                    evaluations: {
+                        none: {
+                            evaluatorId: Number(request.user.id),
+                        },
+                    },
+                }
+            });
 
-        const total = await prismaClient.idea.count({
-            where: {
-                campaignId: Number(campaignId) || undefined,
-                idea: ideia || undefined
-            }
-        });
+        }
+
+        await Promise.all(
+            ideas.map(async idea => {
+                idea.campaign.thumbnail = await uploadService.link('campaigns', idea.campaign.thumbnail!);
+                return idea
+            })
+        )
 
         return reply.send({
             success: true,
